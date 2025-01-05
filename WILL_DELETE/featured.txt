@@ -1,0 +1,181 @@
+import { MovieOrTVWithMediaType, MovieOrTVWithMedia, Images } from '@/types'
+import { api } from '@/utils/server'
+
+type TrendingResult = {
+  results: MovieOrTVWithMediaType[]
+  total_pages: number
+}
+
+export async function getTrending() {
+  const trending: MovieOrTVWithMedia[] = []
+
+  let fetchedItems: MovieOrTVWithMediaType[] = []
+  let totalPages = Infinity
+  let currentPage = 1
+
+  while (trending.length < 10 && currentPage <= totalPages) {
+    try {
+      // Fetch trending items from the API
+      const url = `/trending/all/week?page=${currentPage}`
+      const { results, total_pages } = await api<TrendingResult>(url)
+
+      totalPages = total_pages
+      currentPage++
+
+      // Filter and sort the results
+      const validItems = results
+        .filter((item) => item.overview && item.genre_ids.length)
+        .sort((a, b) => b.popularity - a.popularity)
+
+      fetchedItems = [...fetchedItems, ...validItems]
+
+      // Fetch media details for the remaining items concurrently
+      const imageFetches = fetchedItems
+        .slice(trending.length, trending.length + 10 - trending.length)
+        .map(async (item) => {
+          try {
+            const { posters, backdrops, logos } = await api<Images>(
+              `/${item.media_type}/${item.id}/images`
+            )
+
+            const { poster, backdrop, logo } = {
+              poster: posters.find((x) => !x.iso_639_1)?.file_path || '',
+              backdrop: backdrops.find((x) => !x.iso_639_1)?.file_path || '',
+              logo: logos.find((x) => x.iso_639_1 === 'en')?.file_path || '',
+            }
+
+            if (poster && backdrop && logo) {
+              return {
+                ...item,
+                media: { poster, backdrop, logo },
+              }
+            }
+          } catch (imageError) {
+            console.error(
+              `Failed to fetch images for item ID ${item.id}:`,
+              imageError
+            )
+          }
+          return null
+        })
+
+      // Await all media fetches and add valid results to trending
+      trending.push(...(await Promise.all(imageFetches)).filter(Boolean))
+
+      // Remove processed items from the list
+      fetchedItems = fetchedItems.slice(trending.length)
+    } catch (error) {
+      console.error(
+        `Failed to fetch trending data on page ${currentPage - 1}:`,
+        error
+      )
+      break // Exit if an API error occurs
+    }
+  }
+
+  return { results: trending }
+}
+
+// async function getNowPlayingMovies() {
+//   const url = `${process.env.TMDB_API_URL}/movie/now_playing`;
+//   const options = {
+//     cache: "force-cache" as const,
+//     method: "GET",
+//     headers: {
+//       accept: "application/json",
+//       Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
+//     },
+//   };
+
+//   const res = await fetch(url, options);
+//   const json = (await res.json()) as MoviesPlayingNow;
+
+//   return {
+//     results: json.results
+//       .filter((list) => ["en", "id"].includes(list.original_language))
+//       .filter((list) => !!list.overview)
+//       .slice(0, 10),
+//   };
+// }
+
+// async function getTopRatedTVSeries() {
+//   let page = 1;
+//   let totalPage = 2;
+//   let results: TvShowsAiringToday["results"] = [];
+
+//   while (results.length < 10 && page < totalPage) {
+//     const url = `${process.env.TMDB_API_URL}/tv/top_rated?page=${page}`;
+//     const options = {
+//       cache: "force-cache" as const,
+//       method: "GET",
+//       headers: {
+//         accept: "application/json",
+//         Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
+//       },
+//     };
+
+//     const res = await fetch(url, options);
+//     const json = (await res.json()) as TvShowsAiringToday;
+//     const current = json.results
+//       .filter((list) => ["en", "id"].includes(list.original_language))
+//       .filter((list) => !!list.overview)
+//       .filter((list) => {
+//         if ("first_air_date" in list) {
+//           return new Date(list.first_air_date).getFullYear() > 2000;
+//         }
+
+//         return true;
+//       });
+
+//     results = [...results, ...current].slice(0, 10);
+//     totalPage = json.total_pages;
+//     page++;
+//   }
+
+//   return { results };
+// }
+
+// const regex = /href="(https:\/\/click\.justwatch\.com[^"]*)"/g
+// const res = await fetch(
+//   `https://www.themoviedb.org/tv/63174-lucifer/remote/watch?locale=US`,
+//   {
+//     cache: 'force-cache',
+//   }
+// )
+
+// const htmlString = await res.text()
+// const matches: string[] = []
+
+// let match
+
+// while ((match = regex.exec(htmlString)) !== null) {
+//   const encoded = match[1].match(/r=([^&]+)/)
+
+//   if (encoded) {
+//     const decoded = decodeURIComponent(encoded[1])
+
+//     if (!matches.includes(decoded)) {
+//       matches.push(decoded) // Ambil URL dari Group 1
+//     }
+//   }
+// }
+
+// console.log(matches)
+
+// const options = {
+//   method: 'GET',
+//   headers: {
+//     accept: 'application/json',
+//     Authorization:
+//       'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1NjczYTlkMGNhMzg0OTU5NmNlMjgxOTA3MWE0NzA5ZCIsIm5iZiI6MTU3OTg1NTYxMy42MDE5OTk4LCJzdWIiOiI1ZTJhYWVmZDE2ODVkYTAwMTFlNDgzZTMiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.mAcGpSURJv2rZXDvxOxTEI3fX2HPVc5FvKxv6ULM4Zs',
+//   },
+// }
+
+// fetch('https://api.themoviedb.org/3/tv/63174/watch/providers', options)
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   .then((res) => res.json() as any)
+//   .then((res) => {
+//     const results = res.results as WatchLocale
+//     console.log(results.US)
+//   })
+//   .catch((err) => console.error(err))

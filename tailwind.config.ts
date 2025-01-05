@@ -8,9 +8,13 @@ export default {
   ],
   theme: {
     extend: {
+      fontSize: {
+        '4.5xl': ['40px', '44px'],
+      },
       screens: {
-        xs: '550px',
-        // '2xl': '1440px',
+        // xs: '550px',
+        lg: '1080px',
+        '2xl': '1441px',
         // '3xl': '1680px',
       },
       colors: {

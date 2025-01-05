@@ -1,0 +1,279 @@
+'use client'
+
+import { MovieOrTVWithMedia } from '@/types'
+import { FC, useEffect, useRef } from 'react'
+import { getFirstGenre, getReleaseDate, getTitleOrName } from '@/utils/helper'
+import { useLastVisit } from '@/hooks'
+import Link from 'next/link'
+
+export type MovieOrTVWithMediaType = MovieWithMediaType | TVWithMediaType
+
+export type MediaOnlyType = MovieOrTVWithMediaType['media_type']
+
+export type MovieOrTVWithMedia = MovieOrTVWithMediaType & {
+  media: { [P in 'logo' | 'poster' | 'backdrop']: string }
+}
+
+type FeaturedPosterProps = {
+  id: string
+  lists: MovieOrTVWithMedia[]
+}
+
+const FeaturedPoster: FC<FeaturedPosterProps> = ({ lists, id }) => {
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
+  const lastVisit = useLastVisit()
+  const getLastVisit = lastVisit.get('featured')
+  const featureIndex = getLastVisit[0]
+  const lastVisitIndex = featureIndex === id ? getLastVisit[1] : 0
+  const autoplay = useRef<NodeJS.Timeout>(void 0)
+  const selected = useRef(lastVisitIndex)
+  const lastScrollY = useRef(0)
+  const disableAutoplay = useRef(true)
+
+  const goNext = useRef((index = -1) => {
+    const current = wrapperRef.current
+    const child = current?.children
+    if (!current || !child || disableAutoplay.current) {
+      return
+    }
+    const next = () => {
+      let target = null
+      if (index > -1) selected.current = index
+      if (selected.current === child.length - 1) {
+        target = child[0]
+      } else {
+        target = child[selected.current]?.nextElementSibling
+      }
+      target?.scrollIntoView()
+      window.scroll({ top: lastScrollY.current })
+    }
+
+    // Clear first
+    clearInterval(autoplay.current)
+    autoplay.current = setInterval(next, 5_000)
+  })
+
+  useEffect(() => {
+    if (!wrapperRef.current) return
+
+    const elementIndices: { [x: string]: number } = {}
+    const childs = Array.from(wrapperRef.current.children)
+    const nav = Array.from(
+      wrapperRef.current?.nextElementSibling?.children || []
+    )
+
+    let currentIndex = 0
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const activated = entries.reduce(function (max, entry) {
+          return entry.intersectionRatio > max.intersectionRatio ? entry : max
+        })
+
+        if (activated.intersectionRatio > 0) {
+          const id = activated.target.getAttribute('data-id')
+
+          currentIndex = elementIndices[id || 0]
+          selected.current = currentIndex
+
+          for (let i = 0; i < childs.length; i++) {
+            nav[i].firstElementChild?.classList.toggle(
+              'bg-white',
+              i === currentIndex
+            )
+          }
+        }
+      },
+      {
+        root: wrapperRef.current,
+        threshold: 0.75,
+      }
+    )
+
+    for (let i = 0; i < childs.length; i++) {
+      elementIndices[childs[i].getAttribute('data-id') || 0] = i
+      observer.observe(childs[i])
+    }
+
+    // Slide to last visited child
+    childs[lastVisitIndex]?.scrollIntoView({ behavior: 'instant' })
+
+    return () => {
+      observer.disconnect()
+      clearInterval(autoplay.current)
+    }
+  }, [lastVisitIndex])
+
+  useEffect(() => {
+    if (featureIndex === id) {
+      wrapperRef.current?.focus()
+    }
+  }, [featureIndex, id])
+
+  useEffect(() => {
+    const lastPosY = (e: Event) => {
+      lastScrollY.current = (e.currentTarget as Window).scrollY
+    }
+
+    window.scroll({ top: 0 })
+    window.addEventListener('scroll', lastPosY)
+
+    return () => {
+      window.removeEventListener('scroll', lastPosY)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (disableAutoplay.current || !wrapperRef.current) {
+      return
+    }
+
+    const visibilityChange = () => {
+      if (document.hidden) {
+        clearTimeout(autoplay.current)
+      } else {
+        goNext.current()
+      }
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            goNext.current()
+          } else {
+            clearTimeout(autoplay.current)
+          }
+        })
+      },
+      { threshold: 0.4 }
+    )
+
+    observer.observe(wrapperRef.current)
+    document.addEventListener('visibilitychange', visibilityChange, false)
+    return () => {
+      observer.disconnect()
+      document.removeEventListener('visibilitychange', visibilityChange, false)
+    }
+  }, [])
+
+  return (
+    <section data-section='featured' className='mx-auto max-w-[1920px]'>
+      <div
+        ref={wrapperRef}
+        tabIndex={0}
+        data-feature={id}
+        data-unfocus='0'
+        onBlur={(e) => e.currentTarget.setAttribute('data-unfocus', '0')}
+        onTouchStart={() => clearInterval(autoplay.current)}
+        onTouchEnd={() => goNext.current()}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            return e.currentTarget.setAttribute('data-unfocus', '1')
+          }
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.currentTarget.setAttribute('data-unfocus', '0')
+            return goNext.current()
+          }
+          if (e.key === 'Enter') {
+            const link = e.currentTarget.children[selected.current]
+            if (link instanceof HTMLAnchorElement) {
+              link.click()
+            }
+          }
+        }}
+        className={[
+          'mx-auto max-w-full snap-x snap-mandatory overflow-auto scroll-smooth whitespace-nowrap text-[0] outline-none',
+          'after:pointer-events-none after:absolute after:-bottom-px after:left-0 after:right-0 after:top-0',
+          'before:pointer-events-none before:absolute before:-top-px before:bottom-0 before:left-0 before:right-0',
+          'focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-blue-400 data-[unfocus=1]:ring-0',
+        ].join(' ')}
+      >
+        {lists.map((list, index) => (
+          <Link
+            tabIndex={-1}
+            key={list.id}
+            data-id={list.id}
+            onClick={() => lastVisit.set('featured', [id, index])}
+            className='relative inline-block w-full snap-center overflow-hidden outline-none max-md:h-[177vw] md:h-[max(432px,min(56.25vw,100lvh))] 2xl:h-[max(645px,min(51.736vw,950px))]'
+            href={`/${list.media_type}/${getTitleOrName(list)
+              .toLowerCase()
+              .replace(/[^\w\s]/gi, '')
+              .replace(/\s/g, '-')}/${list.id}`}
+          >
+            <div className='absolute bottom-0 left-0 right-0 top-0 text-base'>
+              <picture className='absolute left-0 top-0 z-[-1] h-full'>
+                {/* <source
+                  media="(min-width: 1280px)"
+                  srcSet={`https://image.tmdb.org/t/p/original${list.media.backdrop}`}
+                /> */}
+                <source
+                  media='(min-width: 768px)'
+                  srcSet={`https://image.tmdb.org/t/p/w1280${list.media.backdrop}`}
+                />
+                <img
+                  src={`https://image.tmdb.org/t/p/w780${list.media.poster}`}
+                  alt='Image'
+                  loading='lazy'
+                  className='absolute left-0 top-0 h-full bg-zinc-800 object-cover 2xl:object-left-bottom'
+                />
+              </picture>
+              <div className='absolute bottom-[max(48px,11.1%)] left-5 right-5 z-[1] md:left-[min(max(40px,5.1%))] md:right-[min(max(40px,5.1%))] md:flex md:items-center 2xl:bottom-32 2xl:top-0'>
+                <div className='relative 2xl:origin-bottom-left 2xl:translate-x-4 2xl:scale-[1.25]'>
+                  <div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`https://image.tmdb.org/t/p/w500${list.media.logo}`}
+                      alt='Logo'
+                      loading='lazy'
+                      className='block max-w-[240px] max-md:mx-auto'
+                    />
+                    <h2 className='sr-only'>{getTitleOrName(list)}</h2>
+                  </div>
+                  <div className='max-w-[320px] whitespace-normal max-md:mx-auto'>
+                    <div className='mb-1 mt-2 flex text-[11px] font-semibold uppercase leading-4 tracking-wider text-zinc-300/80 max-md:justify-center'>
+                      <p>{getFirstGenre(list).replace(' & ', '・')}</p>
+                      <span>・</span>
+                      <p>{getReleaseDate(list).getFullYear()}</p>
+                    </div>
+                    <p className='line-clamp-2 text-sm tracking-normal text-white max-md:mx-auto max-md:max-w-[320px] max-md:text-center md:text-base 2xl:line-clamp-3'>
+                      {list.overview}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+      <div
+        data-id='featured-nav'
+        className='absolute bottom-0 left-0 right-0 z-[1] flex justify-center pb-4 2xl:pb-[15%]'
+      >
+        {lists.map((list, index) => (
+          <div
+            key={list.id}
+            className='flex h-5 w-5 cursor-pointer items-center justify-center rounded-full'
+            onClick={() => {
+              const divAsButton = wrapperRef.current?.children[
+                index
+              ] as HTMLButtonElement
+              if (!divAsButton) {
+                return
+              }
+              wrapperRef.current?.focus()
+              wrapperRef.current?.setAttribute('data-unfocus', '1')
+
+              divAsButton.scrollIntoView()
+              goNext.current(index)
+            }}
+          >
+            <span className='block h-2 w-2 rounded-full [&:not(.bg-white)]:bg-white/30' />
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+export default FeaturedPoster

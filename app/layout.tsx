@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Geist_Mono } from 'next/font/google'
 import './globals.css'
+import Link from 'next/link'
 // import Link from "next/link";
 // import Transition from "@/components/Transition";
 
@@ -29,9 +30,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${geistMono.variable} min-w-[320px] antialiased`}
       >
-        {/* <div
+        <div
           id='header'
-          className='absolute left-0 right-0 top-0 z-50 pb-4 pt-8'
+          className='absolute left-0 right-0 top-0 z-50 pb-4 pt-8 lg:relative lg:py-[6.5px]'
         >
           <div className='max-md:mx-5 md:mx-auto md:w-[87.5%]'>
             <Link
@@ -48,7 +49,7 @@ export default function RootLayout({
               </span>
             </Link>
           </div>
-        </div> */}
+        </div>
         {/* <main className="relative overflow-x-hidden"> */}
         {/* <nav className="absolute top-0 left-0 right-0">
             <ul className="flex space-x-4">

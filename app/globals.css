@@ -40,3 +40,20 @@ body {
 [data-scrollbar='hide']::-webkit-scrollbar {
   @apply hidden;
 }
+
+/*  */
+
+[data-section='featured'] > *:first-child > * {
+  @apply max-md:max-h-[calc(90vh_-_44px)];
+  @apply max-md:max-h-[calc(90lvh_-_44px)];
+}
+
+[data-section='featured'] > *:first-child::before {
+  @apply rotate-180 bg-[linear-gradient(#0000_60%,_rgb(0_0_0_/_40%)_100%)];
+}
+
+[data-section='featured'] > *:first-child::after {
+  @apply bg-[linear-gradient(rgba(0,_0,_0,_0)_40%,_rgba(0,_0,_0,_.7)_100%)];
+  @apply md:bg-[radial-gradient(circle_2000px_at_0%_100%,rgba(0,_0,_0,_0.63)_0%,rgba(0,_0,_0,_0)_25%,rgba(0,_0,_0,_0)_100%),linear-gradient(rgba(0,_0,_0,_0)_90%,_rgba(0,_0,_0,_1)_146%)];
+  /* @apply 2xl:bg-[radial-gradient(circle_2000px_at_0%_100%,rgba(0,_0,_0,_0.75)_0%,rgba(0,_0,_0,_0)_50%,rgba(0,_0,_0,_0)_100%),linear-gradient(rgba(0,_0,_0,_0)_25%,_rgba(0,_0,_0,_1)_86%)]; */
+}

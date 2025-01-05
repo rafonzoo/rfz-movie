@@ -7,6 +7,14 @@ async function getStageItems<T extends EntityTVorMovie[]>(lists: T) {
     lists[0]
   )
 
+  if (!featured) {
+    throw new Error('TypeError: Item is not an object.')
+  }
+
+  if ('profile_path' in featured) {
+    throw new Error("TypeError: Entity doesn't match.")
+  }
+
   // Default hero media
   let hero: T[number] & HeroMedia = {
     ...lists[0],
