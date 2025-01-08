@@ -2,7 +2,7 @@ export default async function Loading() {
   return (
     <div>
       {/* Stage */}
-      <div className='relative flex h-[640px] items-center justify-center bg-zinc-900 md:h-auto md:pt-[56.25%] 2xl:h-[100lvh] 2xl:pt-0'>
+      <div className='relative flex h-[640px] items-center justify-center bg-zinc-900 md:h-auto md:pt-[56.25%] 2xl:h-[100svh] 2xl:pt-0'>
         <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
           <svg
             aria-hidden='true'

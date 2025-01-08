@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
 
-const cachedLastVisit = new Map<string, [string, number]>()
+const cacheMap = new Map<string, string>()
 
-export function useLastVisit() {
+export function useMemoCache() {
   return {
-    get: (key: string) => cachedLastVisit.get(key) || ['', 0],
-    set: (key: string, val: [string, number]) => cachedLastVisit.set(key, val),
+    get: (key: string, def = '') => cacheMap.get(key) || def,
+    set: (key: string, val: string) => cacheMap.set(key, val),
   }
 }
 

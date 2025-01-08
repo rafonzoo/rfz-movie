@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Geist_Mono } from 'next/font/google'
 import './globals.css'
-import Link from 'next/link'
-// import Link from "next/link";
+import ButtonLink from '@/components/Button/Link'
 // import Transition from "@/components/Transition";
 
 const inter = Inter({
@@ -32,22 +31,21 @@ export default function RootLayout({
       >
         <div
           id='header'
-          className='absolute left-0 right-0 top-0 z-50 pb-4 pt-8 lg:relative lg:py-[6.5px]'
+          className='absolute left-0 right-0 z-50 before:table after:table max-lg:text-white max-md:top-0 lg:relative'
         >
-          <div className='max-md:mx-5 md:mx-auto md:w-[87.5%]'>
-            <Link
+          <div className='mt-3 max-md:mx-4 md:mx-auto md:w-[var(--max-width)] lg:my-[6.5px]'>
+            <ButtonLink
               href='/'
-              autoFocus
-              className='inline-block -translate-x-3 outline-none'
+              className='inline-block -translate-x-2 px-2 pb-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-400'
               style={{ textShadow: 'rgb(255 255 255 / 60%) 0px 0px 10px' }}
             >
-              <span className='inline-block origin-bottom-right scale-[.8] text-4xl font-extralight leading-[1] tracking-tight'>
+              <span className='inline-block text-[27px] font-extralight leading-[1] tracking-tight'>
                 STA
               </span>
               <span className='ml-px inline-block text-4xl font-medium leading-[1]'>
                 tv
               </span>
-            </Link>
+            </ButtonLink>
           </div>
         </div>
         {/* <main className="relative overflow-x-hidden"> */}

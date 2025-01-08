@@ -1,4 +1,4 @@
-import { MovieOrTVWithMediaType, MovieOrTVWithMedia, Images } from '@/types'
+import { MovieOrTVWithMediaType, MovieOrTVWithMedia, Images } from '@/types/entities'
 import { api } from '@/utils/server'
 
 type TrendingResult = {

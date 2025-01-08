@@ -1,4 +1,4 @@
-import { CountryCode, Image, Person } from './'
+import { CountryCode, Image, Person } from '.'
 
 export interface CreditSeason {
   air_date?: string

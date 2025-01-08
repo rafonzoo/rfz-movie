@@ -4,7 +4,7 @@ import {
   ProductionCountry,
   SpokenLanguage,
   LanguageOption,
-} from './'
+} from '.'
 
 export interface CreatedBy {
   id: number

@@ -1,7 +1,16 @@
-import { EntityAll, Genres, EntityTVorMovie } from '@/types'
+import { EntityAll, Genres, EntityTVorMovie } from '@/types/entities'
+
+export function slugify(input: string) {
+  return input
+    .toLowerCase() // Ubah menjadi huruf kecil
+    .replace(/[^a-z0-9\s-]/g, '') // Hapus karakter non-alfanumerik kecuali spasi dan tanda -
+    .replace(/\s+/g, '-') // Ganti spasi dengan tanda -
+    .replace(/-+/g, '-') // Hapus tanda - berlebih
+    .replace(/^-+|-+$/g, '') // Hapus tanda - di awal/akhir string
+}
 
 export function isTVorMovie(item: EntityAll): item is EntityTVorMovie {
-  return !('profile_path' in item)
+  return !('gender' in item) && !('profile_path' in item)
 }
 
 export function getMediaType(item: EntityAll) {
@@ -34,13 +43,13 @@ export function getPosterBackdropOf<
   return key in item ? item[key] : ''
 }
 
-export function getReleaseDate(item: EntityAll) {
-  if ('release_date' in item) return new Date(item.release_date)
-  if ('first_air_date' in item) return new Date(item.first_air_date)
+// export function getReleaseDate(item: EntityAll) {
+//   if ('release_date' in item) return new Date(item.release_date)
+//   if ('first_air_date' in item) return new Date(item.first_air_date)
 
-  console.warn("No key matches in item. Returning today's date...")
-  return new Date()
-}
+//   console.warn("No key matches in item. Returning today's date...")
+//   return new Date()
+// }
 
 export function getFirstGenre(item: EntityTVorMovie) {
   let genre: null | { id: number; name: string } = null

@@ -4,36 +4,34 @@ import { FC, JSX, useEffect, useRef, useState } from 'react'
 
 const LazyImage: FC<JSX.IntrinsicElements['img']> = ({ src, ...props }) => {
   const [url, setUrl] = useState('')
+  const srcRef = useRef(src || '')
   const wrapperRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (!wrapperRef.current || !src) return
+    if (!wrapperRef.current || !srcRef.current) return
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           const target = entry.target as HTMLDivElement
-          if (entry.isIntersecting && src) {
-            setUrl(src)
+          if (entry.isIntersecting) {
+            setUrl(srcRef.current)
             observer.unobserve(target)
           }
         })
       },
-      { threshold: 0.1 }
+      { threshold: 0.25 }
     )
 
     observer.observe(wrapperRef.current)
     return () => observer.disconnect()
-  }, [src])
+  }, [])
 
   if (!url) {
     return <div ref={wrapperRef} className={props.className} />
   }
 
-  return (
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-    <img {...props} src={url} />
-  )
+  return <img {...props} src={url} alt={props.alt || ''} />
 }
 
 export default LazyImage

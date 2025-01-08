@@ -1,6 +1,6 @@
 'use client'
 
-import { MovieOrTVWithMedia } from '@/types'
+import { MovieOrTVWithMedia } from '@/types/entities'
 import { FC, useEffect, useRef } from 'react'
 import { getFirstGenre, getReleaseDate, getTitleOrName } from '@/utils/helper'
 import { useLastVisit } from '@/hooks'
@@ -195,7 +195,7 @@ const FeaturedPoster: FC<FeaturedPosterProps> = ({ lists, id }) => {
             key={list.id}
             data-id={list.id}
             onClick={() => lastVisit.set('featured', [id, index])}
-            className='relative inline-block w-full snap-center overflow-hidden outline-none max-md:h-[177vw] md:h-[max(432px,min(56.25vw,100lvh))] 2xl:h-[max(645px,min(51.736vw,950px))]'
+            className='relative inline-block w-full snap-center overflow-hidden outline-none max-md:h-[177vw] md:h-[max(432px,min(56.25vw,100svh))] 2xl:h-[max(645px,min(51.736vw,950px))]'
             href={`/${list.media_type}/${getTitleOrName(list)
               .toLowerCase()
               .replace(/[^\w\s]/gi, '')

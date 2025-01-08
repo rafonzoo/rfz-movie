@@ -1,91 +1,73 @@
 'use client'
 
-import { EntityAll } from '@/types'
+import { FC } from 'react'
+import { EntityAll } from '@/types/entities'
 import {
+  getFirstGenre,
   getImageOf,
-  getPosterBackdropOf,
   getTitleOrName,
   isTVorMovie,
-} from '@/utils/helper'
-import { tw } from '@/utils/lib'
-import { FC } from 'react'
+} from '@/helpers/entities'
+import { tw } from '@/lib'
 
 type PosterDefaultProps = {
-  lists: EntityAll[]
+  items: EntityAll[]
+  children?: React.ReactNode
   orientation?: 'portrait' | 'landscape' | 'circle'
 }
 
 const PosterDefault: FC<PosterDefaultProps> = ({
-  lists,
+  items,
+  children,
   orientation = 'landscape',
 }) => {
   return (
-    <div className='mx-auto w-full max-w-[1920px] overflow-hidden pb-10 md:px-10 md:pb-12'>
+    <div className='mx-auto w-full overflow-hidden pb-10 md:px-10 md:pb-12 lg:w-[var(--max-width)]'>
+      <h3 className='pb-2 pt-4 text-xl font-bold tracking-tight max-md:px-5 md:pb-2.5 md:pt-6'>
+        {children}
+      </h3>
       <div
         data-scrollbar='hide'
         className={[
-          'grid grid-flow-col gap-x-3 overflow-auto whitespace-nowrap text-[0] max-md:px-6 md:snap-x md:snap-mandatory md:gap-x-5',
-          orientation === 'portrait' ? 'auto-cols-[min(36.24%,130.5px)]' : '',
-          orientation === 'landscape' ? 'auto-cols-[min(54.795%,200px)]' : '',
-          ['portrait', 'landscape'].includes(orientation)
-            ? 'md:auto-cols-[calc((100%_-_5_*_20px)_/_6)] lg:auto-cols-[calc((100%_-_6_*_20px)_/_7)] xl:auto-cols-[calc((100%_-_7_*_20px)_/_8)]'
-            : 'auto-cols-[min(28.0725%,102.45px)] md:auto-cols-[calc((100%_-_7_*_20px)_/_8)] lg:auto-cols-[calc((100%_-_8_*_20px)_/_9)] xl:auto-cols-[calc((100%_-_9_*_20px)_/_10)] 2xl:auto-cols-[calc((100%_-_10_*_20px)_/_11)]',
-          // ? 'md:auto-cols-[calc((100%_-_3_*_20px)_/_4)] lg:auto-cols-[calc((100%_-_4_*_20px)_/_5)] xl:auto-cols-[calc((100%_-_5_*_20px)_/_6)]'
-          // : 'auto-cols-[min(28.0725%,102.45px)] md:auto-cols-[calc((100%_-_7_*_20px)_/_8)] lg:auto-cols-[calc((100%_-_8_*_20px)_/_9)] xl:auto-cols-[calc((100%_-_9_*_20px)_/_10)] 2xl:auto-cols-[calc((100%_-_10_*_20px)_/_11)]',
+          'grid grid-flow-col gap-x-3 overflow-auto whitespace-nowrap text-[0] max-md:px-5 md:snap-x md:snap-mandatory md:gap-x-5',
+          orientation === 'portrait' ? 'auto-cols-[min(34.6491228070175%,130.5px)] md:auto-cols-[calc((100%_-_3_*_20px)_/_4)] lg:auto-cols-[calc((100%_-_4_*_20px)_/_5)] xl:auto-cols-[calc((100%_-_5_*_20px)_/_6)]' : '', // prettier-ignore
+          orientation === 'landscape' ? 'auto-cols-[min(54.795%,200px)] md:auto-cols-[calc((100%_-_3_*_20px)_/_4)] lg:auto-cols-[calc((100%_-_4_*_20px)_/_5)] xl:auto-cols-[calc((100%_-_5_*_20px)_/_6)]' : '', // prettier-ignore
+          orientation === 'circle' ? 'auto-cols-[min(28.0725%,102.45px)] md:auto-cols-[calc((100%_-_7_*_20px)_/_8)] lg:auto-cols-[calc((100%_-_8_*_20px)_/_9)] xl:auto-cols-[calc((100%_-_9_*_20px)_/_10)] 2xl:auto-cols-[calc((100%_-_10_*_20px)_/_11)]' : '', // prettier-ignore
         ]
           .filter(Boolean)
           .join(' ')}
       >
-        {lists.map((item, i) => (
+        {items.map((item, i) => (
           <div
             key={i}
             className={[
-              'relative inline-block overflow-hidden whitespace-normal bg-zinc-800 text-base md:snap-start',
-              orientation === 'circle' ? 'rounded-full' : 'rounded-lg',
+              'inline-block overflow-hidden whitespace-normal text-base md:snap-start',
             ]
               .filter(Boolean)
               .join(' ')}
           >
-            <div>
+            <div className='text-xs md:text-sm'>
               <div
-                // prettier-ignore
-                className={tw([
-                  // orientation === 'portrait' ? 'pt-[56.25%] max-md:pt-[150%]' : '',
-                  // orientation === 'landscape' ? 'pt-[56.25%]' : '',
+                className={tw('relative overflow-hidden', [
                   orientation === 'portrait' ? 'pt-[150%]' : '',
-                  orientation === 'landscape' ? 'pt-[150%]' : '',
+                  orientation === 'landscape' ? 'pt-[56.25%]' : '',
                   orientation === 'circle' ? 'pt-[100%]' : '',
+                  orientation === 'circle' ? 'rounded-full' : 'rounded-lg',
                 ])}
               >
-                <picture>
-                  {orientation !== 'circle' && isTVorMovie(item) && (
-                    <>
-                      {/* <source
-                        media='(min-width: 1280px)'
-                        srcSet={`https://image.tmdb.org/t/p/w780${getPosterBackdropOf('backdrop_path', item)}`}
-                      />
-                      <source
-                        media='(min-width: 768px)'
-                        srcSet={`https://image.tmdb.org/t/p/w300${getPosterBackdropOf('backdrop_path', item)}`}
-                      /> */}
-                    </>
-                  )}
-                  <img
-                    loading='lazy'
-                    className='absolute left-0 top-0 h-full w-full'
-                    src={`https://image.tmdb.org/t/p/w300${getImageOf(item)}`}
-                    alt={getTitleOrName(item)}
-                  />
-                </picture>
-                {/* <div className='absolute bottom-0 right-0 pb-1 pr-3 max-md:hidden'>
-                  <span className='text-4.5xl font-semibold'>
-                    {i + 1}
-                  </span>
-                </div> */}
+                <img
+                  loading='lazy'
+                  className='absolute left-0 top-0 h-full w-full'
+                  src={`https://image.tmdb.org/t/p/w300${getImageOf(item)}`}
+                  alt={getTitleOrName(item)}
+                />
               </div>
-              <span className='absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 text-black'>
-                {/* {isTVorMovie(item) ? item} */}
-              </span>
+              <p className='mt-1 line-clamp-2'>{getTitleOrName(item)}</p>
+              {isTVorMovie(item) && (
+                <p className='-mt-0.5 line-clamp-1 text-xs opacity-40'>
+                  {getFirstGenre(item)}
+                </p>
+              )}
             </div>
           </div>
         ))}

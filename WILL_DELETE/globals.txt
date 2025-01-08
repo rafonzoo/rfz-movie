@@ -80,7 +80,7 @@ body {
 
 [data-section='featured'] > [data-feature] > * {
   @apply max-md:max-h-[calc(90vh_-_44px)];
-  @apply max-md:max-h-[calc(90lvh_-_44px)];
+  @apply max-md:max-h-[calc(90svh_-_44px)];
 }
 
 [data-section='featured'] > [data-feature]::-webkit-scrollbar {

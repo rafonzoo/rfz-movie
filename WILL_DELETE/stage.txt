@@ -1,5 +1,5 @@
-import { Images, EntityTVorMovie, HeroMedia } from '@/types'
-import { api } from '@/utils/server'
+import { Images, EntityTVorMovie, HeroMedia } from '@/types/entities'
+import { api } from '@/server/utils'
 
 async function getStageItems<T extends EntityTVorMovie[]>(lists: T) {
   const featured = lists.reduce(

@@ -5,7 +5,7 @@ import {
   ProductionCompany,
   ProductionCountry,
   SpokenLanguage,
-} from './'
+} from '.'
 
 export interface BelongsToCollection {
   id: number
